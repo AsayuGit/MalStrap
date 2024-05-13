@@ -1,76 +1,59 @@
 extern crate tree_magic;
 
-use std::env;
-use std::path::Path;
-use std::process::exit;
-use std::fs;
-use std::io;
+#[macro_use]
+extern crate ini;
 
-fn print_usage() { 
-    let args: Vec<String> = env::args().collect();
-    let path: &Path = Path::new(args[0].as_str());
-    let filename: &str = path.file_name().unwrap().to_str().unwrap(); 
+use clap::Parser;
 
-    println!("Usage : {} <project> <sample>", filename);
-}
+mod config;
+mod project_manager;
+use project_manager::ProjectManager;
 
-fn create_files(project_name: &String, sample_name: &String) -> io::Result<()> {
-    let sample_type: String = tree_magic::from_filepath(Path::new(sample_name));
-    let sample_dir: String = project_name.to_owned() + "/" + sample_type.as_str();
+mod cli;
+use cli::CLI;
 
-    println!("Saving sample to {}", sample_dir);
+mod sample;
 
-    fs::create_dir_all(sample_dir)?;
+/// MalStrap : The malware analysis bootstraping tool
+#[derive(Parser, Debug)]
+#[command(version, about)]
+struct Args {
+    /// Path to the project directory to init
+    #[arg(short, long)]
+    init: Option<String>,
 
-    return Ok(()); 
-}
+    /// List all samples
+    #[arg(short, long)]
+    list: bool,
 
-fn create_notes(project_name: &String) {
+    /// Add a new sample to the project
+    #[arg(short, long)]
+    add: Option<String>,
 
-}
+    /// Delete a sample from the project
+    #[arg(short, long)]
+    del: Option<String>,
 
-fn create_scripts(project_name: &String) {
-
-}
-
-fn create_project_folder(project_name: &String, sample_name: &String) -> io::Result<()> {
-    if Path::new(project_name).is_dir() {
-        println!("Project folder {} already exists, override [y/N] ? ", project_name);
-
-        let mut user_input: String = String::new();
-        io::stdin().read_line(&mut user_input)?;
-
-        match user_input.to_lowercase().trim() {
-            "y" => {
-                println!("Overrride !");
-                fs::remove_dir_all(project_name)?;
-            },
-            _ => {
-                println!("Aborting");
-                return Ok(());
-            },
-        }
-    }
-    
-    println!("Bootstraping project {} ...", project_name);
-
-    fs::create_dir(project_name)?;
-    create_files(project_name, sample_name)?;
-    create_notes(project_name);
-    create_scripts(project_name);
-
-    return Ok(());
+    /// List essential info about a sample
+    #[arg(short, long)]
+    summarize: Option<String>,
 }
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    
-    println!("MalStrap : The malware analysis bootstraping tool");
+    let args: Args = Args::parse();
 
-    if args.len() < 3 {
-        print_usage();
-        exit(-1);
-    }
+    let project_path: String = ".malstrap".to_string();
+    let project: ProjectManager = match ProjectManager::open(&project_path) {
+        Ok(p) => p,
+        Err(_) => match ProjectManager::new(&project_path) {
+            Ok(p) => p,
+            Err(_) => {
+                return;
+            }
+        }
+    };
 
-    let _ = create_project_folder(&args[1], &args[2]);
+    println!("Project {} loaded successfuly !", project.get_name());
+    let mut cli: CLI = CLI::new(project);
+    cli.run(args);
 }
