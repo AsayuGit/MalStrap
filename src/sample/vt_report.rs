@@ -1,10 +1,12 @@
 use core::fmt;
 
 use serde::{Deserialize, Serialize};
-use vt3::VtClient;
 
 use chrono::DateTime;
 use chrono::Utc;
+
+mod vt_connect;
+use vt_connect::VTClient;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum AnalysisVerdict {
@@ -36,7 +38,7 @@ pub struct VtReport {
 }
 
 impl VtReport {
-    fn step(stat: Option<i64>, verdict_value: AnalysisVerdict, total: &mut i64, max_value: &mut i64, verdict: &mut AnalysisVerdict) {
+    fn step(stat: Option<u64>, verdict_value: AnalysisVerdict, total: &mut u64, max_value: &mut u64, verdict: &mut AnalysisVerdict) {
         if let Some(value) = stat {
             *total += value;
             if value > *max_value {
@@ -47,7 +49,7 @@ impl VtReport {
     }
 
     pub fn new(vt_key: &str,  hash: [u8; 32]) -> Option<Self> {
-        let vt: VtClient = VtClient::new(vt_key);
+        let vt: VTClient = VTClient::new(vt_key);
 
         let mut alternative_names: Option<Vec<String>> = None;
         let mut first_seen_date: Option<i64> = None;
@@ -55,6 +57,9 @@ impl VtReport {
         let mut last_analysis: Option<Analysis> = None;
 
         if let Ok(file_info) = vt.file_info(hex::encode(hash).as_str()) {
+
+            println!("{:?}", file_info);
+
             if let Some(data) = file_info.data {
                 if let Some(attributes) = data.attributes {
                     alternative_names = attributes.names;
@@ -63,8 +68,8 @@ impl VtReport {
 
                     // TODO: Move away in implementation
                     if let Some(stats) = attributes.last_analysis_stats {
-                        let mut total: i64 = 0;
-                        let mut max_value: i64 = 0;
+                        let mut total: u64 = 0;
+                        let mut max_value: u64 = 0;
                         let mut verdict: AnalysisVerdict = AnalysisVerdict::UNDECTED;
 
                         VtReport::step(stats.harmless, AnalysisVerdict::HARMLESS, &mut total, &mut max_value, &mut verdict);
