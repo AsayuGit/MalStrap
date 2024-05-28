@@ -7,6 +7,7 @@ use chrono::Utc;
 
 mod vt_connect;
 use vt_connect::VTClient;
+use vt_connect::file::reports::FileRelation;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum AnalysisVerdict {
@@ -33,6 +34,7 @@ pub struct VtReport {
     // Undected by which antivirus
 
     // Any related doamains ?
+    pub related_domains: Option<Vec<String>>
     // Any related ip ?
     // Any related files ?
 }
@@ -55,10 +57,22 @@ impl VtReport {
         let mut first_seen_date: Option<i64> = None;
         let mut last_analysis_date: Option<i64> = None;
         let mut last_analysis: Option<Analysis> = None;
+        let mut related_domains = None;
 
-        if let Ok(file_info) = vt.file_info(hex::encode(hash).as_str()) {
-
-            println!("{:?}", file_info);
+        let hash_str: String = hex::encode(hash);
+        if let Ok(file_info) = vt.file_info(hash_str.as_str()) {
+            if let Ok(file_related_domains) = vt.file_relation(hash_str.as_str(), FileRelation::ContactedDomains) {
+                println!("related_domains: {:?}", file_related_domains);
+                if let Some(data) = file_related_domains.data {
+                    let mut domains: Vec<String> = Vec::new();
+                    for entry in data {
+                        if let Some(id) = entry.id {
+                            domains.push(id);
+                        }
+                    }
+                    related_domains = Some(domains);
+                }
+            }
 
             if let Some(data) = file_info.data {
                 if let Some(attributes) = data.attributes {
@@ -66,7 +80,6 @@ impl VtReport {
                     first_seen_date = attributes.first_seen_itw_date;
                     last_analysis_date = attributes.last_analysis_date;
 
-                    // TODO: Move away in implementation
                     if let Some(stats) = attributes.last_analysis_stats {
                         let mut total: u64 = 0;
                         let mut max_value: u64 = 0;
@@ -93,6 +106,7 @@ impl VtReport {
             first_seen_date,
             last_analysis_date,
             last_analysis,
+            related_domains,
         });
     }
 }
@@ -122,6 +136,13 @@ impl fmt::Display for VtReport {
             writeln!(f, "\n    Analysis:")?;
             writeln!(f, "        Verdict: {:?}", last_analysis.verdict)?;
             writeln!(f, "        Confidence: {:3} %", (100.0 * last_analysis.confidence) as u8)?;
+        }
+
+        if let Some(related_domains) = &self.related_domains {
+            write!(f, "\n    Related Domains:")?;
+            for domain in related_domains {
+                write!(f, "\n        {}", domain)?;
+            }
         }
 
         return Ok(());

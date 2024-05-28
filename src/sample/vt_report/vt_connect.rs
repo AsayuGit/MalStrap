@@ -1,5 +1,5 @@
-mod file;
-mod responses;
+pub mod file;
+pub mod responses;
 
 pub struct VTClient {
     api_key: String,

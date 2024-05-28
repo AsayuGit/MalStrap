@@ -1,13 +1,10 @@
 use reqwest::blocking::{Client, RequestBuilder};
-use serde_json::Value;
 
-use crate::sample::vt_report::vt_connect::responses::VTData;
-
-use super::super::responses::VTResponse;
+use super::super::responses::VTInfoResponse;
 use super::super::VTClient;
 
 impl VTClient {
-    pub fn file_info(&self, hash_str: &str) -> Result<VTResponse, ()> {
+    pub fn file_info(&self, hash_str: &str) -> Result<VTInfoResponse, ()> {
         let request_client: Client = Client::new();
         let request_builder: RequestBuilder = request_client.get(format!("https://www.virustotal.com/api/v3/files/{}", hash_str))
             .header("x-apikey", &self.api_key);
@@ -17,14 +14,7 @@ impl VTClient {
             // Fetch the response's body
             if let Ok(text) = response.text() {
                 // Parse JSON
-                if let Ok(json_data) = serde_json::from_str::<Value>(text.as_str()) {
-                    // Use JSON to fill struct
-                    let vt_response: VTResponse = VTResponse {
-                        data: VTData::new(&json_data["data"]),
-                        meta: None,
-                        links: None,
-                    };
-
+                if let Ok(vt_response) = serde_json::from_str::<VTInfoResponse>(text.as_str()) {
                     return Ok(vt_response);
                 }
             }

@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use serde::Deserialize;
-use serde_json::Value;
 
 #[derive(Debug, Deserialize)]
 pub struct VTVotes {
@@ -44,13 +43,7 @@ pub struct VTAttributes {
     pub tags: Option<Vec<String>>,
 }
 
-impl VTAttributes {
-    pub fn new(json_data: &Value) -> Option<Self> {
-        return serde_json::from_value(json_data.clone()).unwrap();
-    }
-}
-
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct VTData {
     pub id: Option<String>,
     pub file_type: Option<String>,
@@ -58,20 +51,14 @@ pub struct VTData {
     pub attributes: Option<VTAttributes>,
 }
 
-impl VTData {
-    pub fn new(json_data: &Value) -> Option<Self> {
-        return Some(Self {
-            id: json_data["id"].as_str().map(str::to_string),
-            file_type: json_data["type"].as_str().map(str::to_string),
-            links: None,
-            attributes: VTAttributes::new(&json_data["attributes"]),
-        });
-    }
+#[derive(Debug, Deserialize)]
+pub struct VTInfoResponse {
+    pub data: Option<VTData>,
 }
 
-#[derive(Debug)]
-pub struct VTResponse {
-    pub data: Option<VTData>,
-    pub meta: Option<()>,
-    pub links: Option<()>,
+#[derive(Debug, Deserialize)]
+pub struct VTRelationResponse {
+    pub data: Option<Vec<VTData>>,
+    pub meta: Option<HashMap<String, u64>>,
+    pub links: Option<HashMap<String, String>>,
 }
