@@ -106,6 +106,23 @@ impl Sample {
             return Err("Unable to open sample !".to_string());
         }
     }
+
+    pub fn add_tag(&mut self, tag: &str) {
+        if let None = &self.local_report {
+            self.local_report = Some(LocalReport::new());
+        }
+
+        if let Some(local_report) = &mut self.local_report {
+            local_report.add_tag(tag);
+        }
+    }
+
+    pub fn remove_tag(&mut self, tag: &str) {
+        if let Some(local_report) = &mut self.local_report {
+            local_report.remove_tag(tag);
+            // TODO: Maybe remove local report if empty.
+        }
+    }
 }
 
 impl fmt::Display for Sample {

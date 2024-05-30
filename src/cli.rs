@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::Args;
+use crate::{Args, Commands};
 use crate::project_manager::ProjectManager;
 use crate::sample::Sample;
 
@@ -26,7 +26,6 @@ impl CLI {
 
             self.project.del_sample(&sample_name);
         }
-
         if args.list {
             println!("Listing samples !");
 
@@ -36,15 +35,41 @@ impl CLI {
             }
         }
 
-        if let Some(sample_name) = args.summarize {
-            println!("Summary of sample {} :", sample_name);
 
-            self.project.sample_info(sample_name.as_str());
-            /*
-            let sample_info: HashMap<String, Box<dyn Debug>> = self.project.sample_info(sample_name.as_str());
-            for (info, data) in sample_info {
-                println!("{} : {:#?}", info, data);
-            }*/
+        match &args.commands {
+            Some(Commands::Init { path }) => {
+                todo!();
+            },
+            Some(Commands::Sample { name, show, tag, remove_tag }) => {
+                // Add a new tag to a sample
+                if let Some(tag) = tag {
+                    if let Some(sample) = self.project.get_sample(name) {
+                        sample.add_tag(&tag);
+                        self.project.save();
+                    } else {
+                        panic!("Cannot add tag {} because sample {} doesn't exists", tag, name);
+                    }
+                }
+                
+                // Remove a tag from a sample
+                if let Some(tag) = remove_tag {
+                    if let Some(sample) = self.project.get_sample(name) {
+                        sample.remove_tag(&tag);
+                        self.project.save();
+                    } else {
+                        panic!("Cannot remove tag {} because sample {} doesn't exists", tag, name);
+                    }
+                }
+                
+                if *show {
+                    if let Some(sample) = self.project.get_sample(name) {
+                        println!("Summary of sample \"{}\" :\n{}", name, sample);
+                    } else {
+                        panic!("No such sample \"{}\"", name);
+                    }
+                }
+            },
+            None => {},
         }
     }
 }

@@ -1,9 +1,10 @@
 extern crate dirs;
 
 use std::collections::HashMap;
-use std::fmt::Debug;
 use std::fs;
+use std::fs::File;
 use std::io;
+use std::io::Write;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -18,6 +19,23 @@ pub struct ProjectManager {
 }
 
 impl ProjectManager {
+    fn load_global_config() -> HashMap<String, HashMap<String, Option<String>>> {
+        let global_config_path: PathBuf =  dirs::home_dir().expect("Couldn't fetch home directory.").join(".config/malstrap");
+        let global_config_path_str: &str = global_config_path.to_str().unwrap();
+        let global_config: HashMap<String, HashMap<String, Option<String>>> = match ini!(safe global_config_path_str) {
+            Ok(config) => config,
+            Err(_) => {
+                if let Ok(default_config_file) = File::create(global_config_path_str) {
+                    write!(&default_config_file, "[malstrap]\nvt_key=YOUR_KEY_HERE\n").expect("msg");
+                }
+
+                ini!(global_config_path_str)
+            }
+        };
+
+        return global_config;
+    }
+
     pub fn new(path: &str) -> Result<Self, String> {
         /*
         Initialize a new project.
@@ -27,8 +45,7 @@ impl ProjectManager {
 
         let project_path: &Path = Path::new(path);
         let config_path: PathBuf = project_path.join("config.json");
-        let global_config_path: PathBuf =  dirs::home_dir().expect("Couldn't fetch home directory.").join(".config/malstrap");
-        let global_config: HashMap<String, HashMap<String, Option<String>>> = ini!(global_config_path.to_str().unwrap());
+        let global_config: HashMap<String, HashMap<String, Option<String>>> = Self::load_global_config();
 
         return match Self::create_project_folder(path) {
             Ok(()) => return Ok(Self {
@@ -47,8 +64,7 @@ impl ProjectManager {
         */
         let project_path: &Path = Path::new(path);
         let config_path: PathBuf = project_path.join("config.json");
-        let global_config_path: PathBuf =  dirs::home_dir().expect("Couldn't fetch home directory.").join(".config/malstrap");
-        let global_config: HashMap<String, HashMap<String, Option<String>>> = ini!(global_config_path.to_str().unwrap());
+        let global_config: HashMap<String, HashMap<String, Option<String>>> = Self::load_global_config();
 
         return match Config::load(config_path.to_str().unwrap()) {
             Ok(project_config) => Ok(Self {
@@ -67,10 +83,6 @@ impl ProjectManager {
         */
 
         return &self.config.name;
-    }
-
-    pub fn get_sample_path(&self, sample_name: &str) -> String {
-        return self.path.to_owned() + "/" + self.config.samples.get(sample_name).unwrap().name.as_str();
     }
 
     fn create_project_folder(path: &str) -> Result<(), String> {
@@ -126,6 +138,10 @@ impl ProjectManager {
         return &self.config.samples;
     }
 
+    pub fn save(&self) {
+        let _ = self.config.save(&self.config_path);
+    }
+
     // TODO: use Path manipulation to be cross platform
     pub fn add_sample(&mut self, path: &str) {
         if let Ok(mut sample) = Sample::new(path, &self._global_config["malstrap"]["vt_key"]) {
@@ -145,7 +161,7 @@ impl ProjectManager {
             self.config.samples.insert(sample.name.to_owned(), sample);
 
             // Finally save the new config state.
-            let _ = self.config.save(&self.config_path);
+            self.save();
         }
     }
 
@@ -158,21 +174,12 @@ impl ProjectManager {
             self.config.samples.remove(sample_name);
 
             // Finally save the new config state.
-            let _ = self.config.save(&self.config_path);
+            self.save();
         }
     }
 
-    // TODO! Change to a Vec
-    pub fn sample_info(&self, name: &str) -> HashMap<String, Box<dyn Debug>> {
-        let mut sample_info: HashMap<String, Box<dyn Debug>> = HashMap::new();
-
-        let sample_path: String = self.get_sample_path(name);
-        sample_info.insert("PATH".to_string(), Box::new(sample_path.to_owned()));
-
-        if let Some(sample) = self.config.samples.get(name) {
-            println!("{}", sample);
-        }
-
-        return sample_info;
+    // Return a sample by name if available
+    pub fn get_sample(&mut self, sample_name: &str) -> Option<&mut Sample> {
+        return self.config.samples.get_mut(sample_name);
     }
 }

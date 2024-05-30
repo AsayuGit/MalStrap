@@ -3,7 +3,7 @@ extern crate tree_magic;
 #[macro_use]
 extern crate ini;
 
-use clap::Parser;
+use clap::{Parser, Subcommand};
 
 mod config;
 mod project_manager;
@@ -14,29 +14,51 @@ use cli::CLI;
 
 mod sample;
 
+#[derive(Subcommand, Debug)]
+enum Commands {
+    /// Project init
+    Init {
+        /// Project path
+        path: String,
+    },
+
+    /// Sample actions
+    Sample {
+        /// Sample name
+        name: String,
+
+        /// List essential info about a sample
+        #[arg(short, long)]
+        show: bool,
+
+        /// Add a custom tag to a sample
+        #[arg(short, long, value_name = "TAG")]
+        tag: Option<String>,
+
+        /// Remove a tag from a sample
+        #[arg(short, long, value_name = "TAG")]
+        remove_tag: Option<String>,
+    }
+}
+
 /// MalStrap : The malware analysis bootstraping tool
 #[derive(Parser, Debug)]
 #[command(version, about)]
 struct Args {
-    /// Path to the project directory to init
-    #[arg(short, long)]
-    init: Option<String>,
-
     /// List all samples
     #[arg(short, long)]
     list: bool,
 
     /// Add a new sample to the project
-    #[arg(short, long)]
+    #[arg(short, long, value_name = "PATH")]
     add: Option<String>,
-
+    
     /// Delete a sample from the project
-    #[arg(short, long)]
+    #[arg(short, long, value_name = "PATH")]
     del: Option<String>,
 
-    /// List essential info about a sample
-    #[arg(short, long)]
-    summarize: Option<String>,
+    #[command(subcommand)]
+    commands: Option<Commands>,
 }
 
 fn main() {

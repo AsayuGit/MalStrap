@@ -29,14 +29,11 @@ pub struct VtReport {
     pub first_seen_date: Option<i64>,
     pub last_analysis_date: Option<i64>,
     pub last_analysis: Option<Analysis>,
+    pub reputation: Option<i64>,
 
-    // Detected by which antivirus
-    // Undected by which antivirus
-
-    // Any related doamains ?
-    pub related_domains: Option<Vec<String>>
-    // Any related ip ?
-    // Any related files ?
+    pub contacted_domains: Option<Vec<String>>, // TODO: Reputation
+    pub contacted_ips: Option<Vec<String>>,
+    pub dropped_files: Option<Vec<String>>,
 }
 
 impl VtReport {
@@ -57,20 +54,52 @@ impl VtReport {
         let mut first_seen_date: Option<i64> = None;
         let mut last_analysis_date: Option<i64> = None;
         let mut last_analysis: Option<Analysis> = None;
-        let mut related_domains = None;
+        let mut reputation: Option<i64> = None;
+        let mut contacted_domains: Option<Vec<String>> = None;
+        let mut contacted_ips: Option<Vec<String>> = None;
+        let mut dropped_files: Option<Vec<String>> = None;
 
         let hash_str: String = hex::encode(hash);
-        if let Ok(file_info) = vt.file_info(hash_str.as_str()) {
-            if let Ok(file_related_domains) = vt.file_relation(hash_str.as_str(), FileRelation::ContactedDomains) {
-                println!("related_domains: {:?}", file_related_domains);
-                if let Some(data) = file_related_domains.data {
+        if let Ok(file_info) = vt.file_info(&hash_str) {
+            if let Ok(file_contacted_domains) = vt.file_relation(&hash_str, FileRelation::ContactedDomains) {
+                // TODO: Could be condenced using macros ?
+                if let Some(data) = file_contacted_domains.data {
                     let mut domains: Vec<String> = Vec::new();
                     for entry in data {
                         if let Some(id) = entry.id {
                             domains.push(id);
                         }
                     }
-                    related_domains = Some(domains);
+                    contacted_domains = Some(domains);
+                }
+            }
+
+            if let Ok(file_contacted_ips) = vt.file_relation(&hash_str, FileRelation::ContactedIps) {
+                if let Some(data) = file_contacted_ips.data {
+                    let mut ips: Vec<String> = Vec::new();
+                    for entry in data {
+                        if let Some(id) = entry.id {
+                            ips.push(id);
+                        }
+                    }
+                    contacted_ips = Some(ips);
+                }
+            }
+
+            if let Ok(file_dropped_files) = vt.file_relation(&hash_str, FileRelation::DroppedFiles) {
+                if let Some(data) = file_dropped_files.data {
+                    let mut files: Vec<String> = Vec::new();
+                    for entry in data {
+                        if let Some(name) = entry.attributes
+                            .and_then(|attributes| attributes.names)
+                            .and_then(|names| names.get(0).map(|name| name.clone()))
+                        {
+                            files.push(name);
+                        } else if let Some(id) = entry.id {
+                            files.push(id);
+                        }
+                    }
+                    dropped_files = Some(files);
                 }
             }
 
@@ -79,6 +108,7 @@ impl VtReport {
                     alternative_names = attributes.names;
                     first_seen_date = attributes.first_seen_itw_date;
                     last_analysis_date = attributes.last_analysis_date;
+                    reputation = attributes.reputation;
 
                     if let Some(stats) = attributes.last_analysis_stats {
                         let mut total: u64 = 0;
@@ -106,7 +136,10 @@ impl VtReport {
             first_seen_date,
             last_analysis_date,
             last_analysis,
-            related_domains,
+            reputation,
+            contacted_domains,
+            contacted_ips,
+            dropped_files,
         });
     }
 }
@@ -116,7 +149,7 @@ impl fmt::Display for VtReport {
         write!( f, "Virus-Total Report:")?;
 
         if let Some(alternative_names) = &self.alternative_names {
-            write!(f, "\n    Alternative names :")?;
+            write!(f, "\n    Alternative names:")?;
             for name in alternative_names {
                 write!(f, "\n        - {}", name)?;
             }
@@ -124,12 +157,16 @@ impl fmt::Display for VtReport {
 
         if let Some(first_seen_date) = &self.first_seen_date {
             let time: DateTime<Utc> = DateTime::from_timestamp(*first_seen_date, 0).unwrap();
-            write!(f, "\n    First seen at : {}", time)?;
+            write!(f, "\n    First seen at: {}", time)?;
         }
 
         if let Some(last_analysis_date) = &self.last_analysis_date {
             let time: DateTime<Utc> = DateTime::from_timestamp(*last_analysis_date, 0).unwrap();
-            write!(f, "\n    Last analysed : {}", time)?;
+            write!(f, "\n    Last analysed: {}", time)?;
+        }
+
+        if let Some(reputation) = &self.reputation {
+            write!(f, "\n    Reputation: {}", reputation)?;
         }
 
         if let Some(last_analysis) = &self.last_analysis {
@@ -138,11 +175,25 @@ impl fmt::Display for VtReport {
             writeln!(f, "        Confidence: {:3} %", (100.0 * last_analysis.confidence) as u8)?;
         }
 
-        if let Some(related_domains) = &self.related_domains {
-            write!(f, "\n    Related Domains:")?;
+        if let Some(related_domains) = &self.contacted_domains {
+            write!(f, "\n    Contacted domains:")?;
             for domain in related_domains {
                 write!(f, "\n        {}", domain)?;
-            }
+            } writeln!(f)?;
+        }
+
+        if let Some(related_ips) = &self.contacted_ips {
+            write!(f, "\n    Contacted ips:")?;
+            for ip in related_ips {
+                write!(f, "\n        {}", ip)?;
+            } writeln!(f)?;
+        }
+
+        if let Some(dropped_files) = &self.dropped_files {
+            write!(f, "\n    Dropped files:")?;
+            for ip in dropped_files {
+                write!(f, "\n        {}", ip)?;
+            } writeln!(f)?;
         }
 
         return Ok(());
