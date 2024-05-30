@@ -16,7 +16,7 @@ pub struct ProjectManager {
     path: String,
     config: Config,
     config_path: String,
-    _global_config: HashMap<String, HashMap<String, Option<String>>>,
+    global_config: HashMap<String, HashMap<String, Option<String>>>,
 }
 
 impl ProjectManager {
@@ -27,7 +27,7 @@ impl ProjectManager {
             Ok(config) => config,
             Err(_) => {
                 if let Ok(default_config_file) = File::create(global_config_path_str) {
-                    write!(&default_config_file, "[malstrap]\nvt_key=YOUR_KEY_HERE\n").expect("msg");
+                    write!(&default_config_file, "[malstrap]\nvt_key=YOUR_KEY_HERE\nvt_enable=yes\n").expect("msg");
                 }
 
                 ini!(global_config_path_str)
@@ -55,7 +55,7 @@ impl ProjectManager {
                 path: project_path_str,
                 config: Config::new(config_path.to_str().unwrap(), project_path.file_name().unwrap().to_str().unwrap()),
                 config_path: String::from(config_path.to_str().unwrap()),
-                _global_config: global_config,
+                global_config,
             }),
             Err(e) => Err(e),
         }
@@ -77,7 +77,7 @@ impl ProjectManager {
                 path: project_path_str,
                 config: project_config,
                 config_path: String::from(config_path.to_str().unwrap()),
-                _global_config: global_config,
+                global_config,
             }),
             Err(e) => Err(format!("Couldn't open project {} {}", path, e.to_string())),
         }
@@ -150,7 +150,12 @@ impl ProjectManager {
 
     // TODO: use Path manipulation to be cross platform
     pub fn add_sample(&mut self, path: &str) {
-        if let Ok(mut sample) = Sample::new(path, if self.config.plugins.virus_total { &self._global_config["malstrap"]["vt_key"] } else { &None }) {
+        let global_vt_enable: bool = match &self.global_config["malstrap"]["vt_enable"] {
+            Some(vt_enable) => vt_enable.eq("yes"),
+            None => false,
+        };
+
+        if let Ok(mut sample) = Sample::new(path, if global_vt_enable && self.config.plugins.virus_total { &self.global_config["malstrap"]["vt_key"] } else { &None }) {
             let sample_src_path: &Path = Path::new(path);
 
             // Create the sample directory.
