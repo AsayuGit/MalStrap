@@ -149,9 +149,11 @@ impl fmt::Display for VtReport {
         write!( f, "Virus-Total Report:")?;
 
         if let Some(alternative_names) = &self.alternative_names {
-            write!(f, "\n    Alternative names:")?;
-            for name in alternative_names {
-                write!(f, "\n        - {}", name)?;
+            if !alternative_names.is_empty() {
+                write!(f, "\n    Alternative names:")?;
+                for name in alternative_names {
+                    write!(f, "\n        - {}", name)?;
+                }
             }
         }
 
@@ -176,24 +178,30 @@ impl fmt::Display for VtReport {
         }
 
         if let Some(related_domains) = &self.contacted_domains {
-            write!(f, "\n    Contacted domains:")?;
-            for domain in related_domains {
-                write!(f, "\n        {}", domain)?;
-            } writeln!(f)?;
+            if !related_domains.is_empty() {
+                write!(f, "\n    Contacted domains:")?;
+                for domain in related_domains {
+                    write!(f, "\n        {}", domain)?;
+                } writeln!(f)?;
+            }
         }
 
         if let Some(related_ips) = &self.contacted_ips {
-            write!(f, "\n    Contacted ips:")?;
-            for ip in related_ips {
-                write!(f, "\n        {}", ip)?;
-            } writeln!(f)?;
+            if !related_ips.is_empty() {
+                write!(f, "\n    Contacted ips:")?;
+                for ip in related_ips {
+                    write!(f, "\n        {}", ip)?;
+                } writeln!(f)?;
+            }
         }
 
         if let Some(dropped_files) = &self.dropped_files {
-            write!(f, "\n    Dropped files:")?;
-            for ip in dropped_files {
-                write!(f, "\n        {}", ip)?;
-            } writeln!(f)?;
+            if !dropped_files.is_empty() {
+                write!(f, "\n    Dropped files:")?;
+                for ip in dropped_files {
+                    write!(f, "\n        {}", ip)?;
+                } writeln!(f)?;
+            }
         }
 
         return Ok(());

@@ -48,7 +48,6 @@ impl VTClient {
 
         if let Ok(response) = request_builder.send() {
             if let Ok(text) = response.text() {
-                println!("{:#?}", serde_json::from_str::<serde_json::Value>(&text));
                 if let Ok(vt_response) = serde_json::from_str::<VTRelationResponse>(text.as_str()) {
                     return Ok(vt_response);
                 }

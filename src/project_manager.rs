@@ -158,7 +158,7 @@ impl ProjectManager {
 
             // Copy the sample to its destination.
             fs::copy(sample_src_path, sample_dst_path.to_owned() + "/" + sample.name.as_str()).expect("Cannot copy sample to destination.");
-            sample.path = sample_dst_path;
+            sample.path = sample_dst_path + "/" + &sample.name;
 
             // Then store the path to the sample relative to the project directory.
             //let _sample_dir: String = sample.magic.to_owned() + "/" + sample.name.as_str();
