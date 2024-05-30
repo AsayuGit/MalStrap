@@ -4,9 +4,15 @@ use serde::{Deserialize, Serialize};
 use std::error::Error;
 use crate::sample::Sample;
 
+#[derive(Clone, Serialize, Deserialize)]
+pub struct PluginConfig {
+    pub virus_total: bool,
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct Config {
     pub name: String,
+    pub plugins: PluginConfig,
     pub samples: HashMap<String, Sample>,
 }
 
@@ -18,6 +24,9 @@ impl Config {
 
         let new_config: Self = Self {
             name: String::from(name),
+            plugins: PluginConfig {
+                virus_total: true, // Enable plugin by default
+            },
             samples: HashMap::new(),
         };
 

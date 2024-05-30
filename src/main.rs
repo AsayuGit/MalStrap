@@ -38,7 +38,18 @@ enum Commands {
         /// Remove a tag from a sample
         #[arg(short, long, value_name = "TAG")]
         remove_tag: Option<String>,
-    }
+    },
+
+    /// Configure workspace settings
+    Config {
+        /// Show the current config
+        #[arg(short, long)]
+        show: bool,
+
+        /// Enable/Disable the VirusTotal plugin
+        #[arg(short, long)]
+        vt_toogle: bool,
+    },
 }
 
 /// MalStrap : The malware analysis bootstraping tool

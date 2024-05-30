@@ -9,6 +9,7 @@ use std::path::Path;
 use std::path::PathBuf;
 
 use crate::config::Config;
+use crate::config::PluginConfig;
 use crate::sample::Sample;
 
 pub struct ProjectManager {
@@ -82,12 +83,12 @@ impl ProjectManager {
         }
     }
 
-    pub fn get_name(&self) -> &String {
-        /*
-        Return the name of the current project.
-        */
+    pub fn vt_enable(&mut self, enable: bool) {
+        self.config.plugins.virus_total = enable;
+    }
 
-        return &self.config.name;
+    pub fn get_plugin_config(&self) -> PluginConfig {
+        return self.config.plugins.clone();
     }
 
     fn create_project_folder(path: &str) -> Result<(), String> {
@@ -149,7 +150,7 @@ impl ProjectManager {
 
     // TODO: use Path manipulation to be cross platform
     pub fn add_sample(&mut self, path: &str) {
-        if let Ok(mut sample) = Sample::new(path, &self._global_config["malstrap"]["vt_key"]) {
+        if let Ok(mut sample) = Sample::new(path, if self.config.plugins.virus_total { &self._global_config["malstrap"]["vt_key"] } else { &None }) {
             let sample_src_path: &Path = Path::new(path);
 
             // Create the sample directory.

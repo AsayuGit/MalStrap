@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use crate::config::PluginConfig;
 use crate::{Args, Commands};
 use crate::project_manager::ProjectManager;
 use crate::sample::Sample;
@@ -67,6 +68,18 @@ impl CLI {
                     } else {
                         panic!("No such sample \"{}\"", name);
                     }
+                }
+            },
+            Some(Commands::Config { show, vt_toogle }) => {
+                let plugin_config: PluginConfig = self.project.get_plugin_config();
+
+                if *vt_toogle {
+                    self.project.vt_enable(!plugin_config.virus_total);
+                    self.project.save();
+                }
+
+                if *show {
+                    println!("VirusTotal plugin : {}", if plugin_config.virus_total { "Enabled" } else { "Dissabled" });
                 }
             },
             _ => {},

@@ -35,7 +35,6 @@ impl FileRelation {
             Self::PeResourceChildren => "pe_resource_children",
             Self::PeResourceParents => "pe_resource_parents",
             Self::Votes => "votes",
-            _ => "none",
         };
     }
 }
