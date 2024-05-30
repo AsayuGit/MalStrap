@@ -64,18 +64,25 @@ struct Args {
 fn main() {
     let args: Args = Args::parse();
 
-    let project_path: String = ".malstrap".to_string();
-    let project: ProjectManager = match ProjectManager::open(&project_path) {
-        Ok(p) => p,
-        Err(_) => match ProjectManager::new(&project_path) {
-            Ok(p) => p,
+    let project: Option<ProjectManager> = match &args.commands {
+        Some(Commands::Init { path }) => match ProjectManager::new(path) {
+            Ok(p) => Some(p),
             Err(_) => {
-                return;
+                println!("Failed to init project !");
+                None
+            }
+        },
+        _ => match ProjectManager::open(".") {
+            Ok(p) => Some(p),
+            Err(_) => {
+                println!("Current directory is not a MalStrap project directory.");
+                None
             }
         }
     };
 
-    println!("Project {} loaded successfuly !", project.get_name());
-    let mut cli: CLI = CLI::new(project);
-    cli.run(args);
+    if let Some(project) = project {
+        let mut cli: CLI = CLI::new(project);
+        cli.run(args);
+    }
 }

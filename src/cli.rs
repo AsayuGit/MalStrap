@@ -27,19 +27,19 @@ impl CLI {
             self.project.del_sample(&sample_name);
         }
         if args.list {
-            println!("Listing samples !");
-
             let sample_list: &HashMap<String, Sample> = self.project.list_samples();
-            for (_, sample) in sample_list {
-                println!("{} [{}] -> {}", sample.name, sample.magic, sample.path);
+            if sample_list.is_empty() {
+                println!("There is no samples to list.");
+            } else {
+                println!("Listing samples !");
+                for (_, sample) in sample_list {
+                    println!("{} [{}] -> {}", sample.name, sample.magic, sample.path);
+                }
             }
         }
 
 
         match &args.commands {
-            Some(Commands::Init { path }) => {
-                todo!();
-            },
             Some(Commands::Sample { name, show, tag, remove_tag }) => {
                 // Add a new tag to a sample
                 if let Some(tag) = tag {
@@ -69,7 +69,7 @@ impl CLI {
                     }
                 }
             },
-            None => {},
+            _ => {},
         }
     }
 }

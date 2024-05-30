@@ -43,13 +43,15 @@ impl ProjectManager {
         This will panic if the project's folder cannot be created.
         */
 
-        let project_path: &Path = Path::new(path);
+        let input_path: &Path = Path::new(path);
+        let project_path: PathBuf = input_path.join(".malstrap");
         let config_path: PathBuf = project_path.join("config.json");
         let global_config: HashMap<String, HashMap<String, Option<String>>> = Self::load_global_config();
 
-        return match Self::create_project_folder(path) {
+        let project_path_str: String = String::from(project_path.to_str().unwrap());
+        return match Self::create_project_folder(&project_path_str) {
             Ok(()) => return Ok(Self {
-                path: String::from(project_path.to_str().unwrap()),
+                path: project_path_str,
                 config: Config::new(config_path.to_str().unwrap(), project_path.file_name().unwrap().to_str().unwrap()),
                 config_path: String::from(config_path.to_str().unwrap()),
                 _global_config: global_config,
@@ -62,13 +64,16 @@ impl ProjectManager {
         /*
         Load a previously created project form disk.
         */
-        let project_path: &Path = Path::new(path);
+
+        let input_path: &Path = Path::new(path);
+        let project_path: PathBuf = input_path.join(".malstrap");
         let config_path: PathBuf = project_path.join("config.json");
         let global_config: HashMap<String, HashMap<String, Option<String>>> = Self::load_global_config();
 
+        let project_path_str: String = String::from(project_path.to_str().unwrap());
         return match Config::load(config_path.to_str().unwrap()) {
             Ok(project_config) => Ok(Self {
-                path: String::from(project_path.to_str().unwrap()),
+                path: project_path_str,
                 config: project_config,
                 config_path: String::from(config_path.to_str().unwrap()),
                 _global_config: global_config,
