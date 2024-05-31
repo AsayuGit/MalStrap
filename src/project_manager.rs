@@ -142,7 +142,7 @@ impl ProjectManager {
 
     pub fn compile_notes(&self) {
         fs::create_dir_all("Notes").expect("Unable to create notes directory");
-        if let Ok(mut notes_file) = fs::File::create("Notes/Notes.md") {
+        if let Ok(mut notes_file) = fs::File::create("Notes/Notes.txt") {
             for (_name, sample) in &self.config.samples {
                 writeln!(notes_file, "{}", sample).expect("Couldn't write sample to note file");
             }

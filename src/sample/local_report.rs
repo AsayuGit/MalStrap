@@ -9,10 +9,6 @@ pub struct LocalReport {
 
 impl LocalReport {
     pub fn new() -> Self {
-        // TODO: Any locally related domains ?
-        // TODO: Any locally related ip ?
-        // TODO: Any locally related files ?
-
         return Self {
             custom_tags: None,
         };

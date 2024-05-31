@@ -63,7 +63,7 @@ impl CLI {
                     if sample_list.is_empty() {
                         println!("There is no samples to list.");
                     } else {
-                        println!("Listing samples !");
+                        println!("Current samples:\n");
                         for (_, sample) in sample_list {
                             println!("{} [{}] -> {}", sample.name, sample.magic, sample.path);
                         }
@@ -84,7 +84,8 @@ impl CLI {
                 }
 
                 if *show {
-                    println!("VirusTotal plugin : {}", if plugin_config.virus_total { "Enabled" } else { "Dissabled" });
+                    println!("Current plugin config: \n");
+                    println!("VirusTotal plugin: {}", if plugin_config.virus_total { "Enabled" } else { "Dissabled" });
                 }
             },
             _ => {},
