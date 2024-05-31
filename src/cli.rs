@@ -17,29 +17,6 @@ impl CLI {
     }
 
     pub fn run(&mut self, args: Args) {
-        if let Some(sample_path) = args.add {
-            println!("Adding {} ...", sample_path);
-
-            self.project.add_sample(&sample_path);
-        }
-        if let Some(sample_name) = args.del {
-            println!("Deleting {} ...", sample_name);
-
-            self.project.del_sample(&sample_name);
-        }
-        if args.list {
-            let sample_list: &HashMap<String, Sample> = self.project.list_samples();
-            if sample_list.is_empty() {
-                println!("There is no samples to list.");
-            } else {
-                println!("Listing samples !");
-                for (_, sample) in sample_list {
-                    println!("{} [{}] -> {}", sample.name, sample.magic, sample.path);
-                }
-            }
-        }
-
-
         match &args.commands {
             Some(Commands::Sample { name, show, tag, remove_tag }) => {
                 // Add a new tag to a sample
@@ -67,6 +44,29 @@ impl CLI {
                         println!("Summary of sample \"{}\" :\n{}", name, sample);
                     } else {
                         panic!("No such sample \"{}\"", name);
+                    }
+                }
+            },
+            Some(Commands::Project { list, add, del }) => {
+                if let Some(sample_path) = add {
+                    println!("Adding {} ...", sample_path);
+        
+                    self.project.add_sample(&sample_path);
+                }
+                if let Some(sample_name) = del {
+                    println!("Deleting {} ...", sample_name);
+        
+                    self.project.del_sample(&sample_name);
+                }
+                if *list {
+                    let sample_list: &HashMap<String, Sample> = self.project.list_samples();
+                    if sample_list.is_empty() {
+                        println!("There is no samples to list.");
+                    } else {
+                        println!("Listing samples !");
+                        for (_, sample) in sample_list {
+                            println!("{} [{}] -> {}", sample.name, sample.magic, sample.path);
+                        }
                     }
                 }
             },

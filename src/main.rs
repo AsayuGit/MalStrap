@@ -22,6 +22,21 @@ enum Commands {
         path: String,
     },
 
+    /// Project actions
+    Project {
+        /// List all samples
+        #[arg(short, long)]
+        list: bool,
+
+        /// Add a new sample to the project
+        #[arg(short, long, value_name = "PATH")]
+        add: Option<String>,
+        
+        /// Delete a sample from the project
+        #[arg(short, long, value_name = "PATH")]
+        del: Option<String>,
+    },
+
     /// Sample actions
     Sample {
         /// Sample name
@@ -56,18 +71,6 @@ enum Commands {
 #[derive(Parser, Debug)]
 #[command(version, about)]
 struct Args {
-    /// List all samples
-    #[arg(short, long)]
-    list: bool,
-
-    /// Add a new sample to the project
-    #[arg(short, long, value_name = "PATH")]
-    add: Option<String>,
-    
-    /// Delete a sample from the project
-    #[arg(short, long, value_name = "PATH")]
-    del: Option<String>,
-
     #[command(subcommand)]
     commands: Option<Commands>,
 }

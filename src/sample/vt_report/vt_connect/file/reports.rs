@@ -3,6 +3,7 @@ use reqwest::blocking::{Client, RequestBuilder};
 use super::super::responses::VTRelationResponse;
 use super::super::VTClient;
 
+#[allow(dead_code)]
 pub enum FileRelation {
     Behaviours,
     BundledFiles,
