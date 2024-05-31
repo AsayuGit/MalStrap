@@ -144,6 +144,10 @@ impl ProjectManager {
         return &self.config.samples;
     }
 
+    pub fn compile_notes(&self) {
+        todo!()
+    }
+
     pub fn save(&self) {
         let _ = self.config.save(&self.config_path);
     }
@@ -159,7 +163,7 @@ impl ProjectManager {
             let sample_src_path: &Path = Path::new(path);
 
             // Create the sample directory.
-            let sample_dst_path: String = self.path.to_owned() + "/" + sample.magic.as_str();
+            let sample_dst_path: String = sample.magic.clone();
             fs::create_dir_all(&sample_dst_path).expect("Unable to create sample directory.");
 
             // Copy the sample to its destination.
@@ -179,7 +183,7 @@ impl ProjectManager {
     pub fn del_sample(&mut self, sample_name: &str) {
         if let Some(sample) = self.config.samples.get(sample_name) {
             // Delete the sample file
-            fs::remove_file(self.path.to_owned() + "/" + sample.path.as_str()).expect("Couldn't delete sample.");
+            fs::remove_file(&sample.path).expect("Couldn't delete sample.");
 
             // Remove the sample from the config
             self.config.samples.remove(sample_name);

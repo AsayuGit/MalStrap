@@ -55,6 +55,13 @@ enum Commands {
         remove_tag: Option<String>,
     },
 
+    /// Note generation actions
+    Notes {
+        /// Regenerate note file
+        #[arg(short, long)]
+        generate: bool,
+    },
+
     /// Configure workspace settings
     Config {
         /// Show the current config

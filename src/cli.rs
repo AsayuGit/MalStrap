@@ -70,6 +70,11 @@ impl CLI {
                     }
                 }
             },
+            Some(Commands::Notes { generate }) => {
+                if *generate {
+                    self.project.compile_notes();
+                }
+            },
             Some(Commands::Config { show, vt_toogle }) => {
                 let plugin_config: PluginConfig = self.project.get_plugin_config();
 
