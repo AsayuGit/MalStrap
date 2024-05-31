@@ -13,7 +13,6 @@ use crate::config::PluginConfig;
 use crate::sample::Sample;
 
 pub struct ProjectManager {
-    path: String,
     config: Config,
     config_path: String,
     global_config: HashMap<String, HashMap<String, Option<String>>>,
@@ -52,7 +51,6 @@ impl ProjectManager {
         let project_path_str: String = String::from(project_path.to_str().unwrap());
         return match Self::create_project_folder(&project_path_str) {
             Ok(()) => return Ok(Self {
-                path: project_path_str,
                 config: Config::new(config_path.to_str().unwrap(), project_path.file_name().unwrap().to_str().unwrap()),
                 config_path: String::from(config_path.to_str().unwrap()),
                 global_config,
@@ -71,10 +69,8 @@ impl ProjectManager {
         let config_path: PathBuf = project_path.join("config.json");
         let global_config: HashMap<String, HashMap<String, Option<String>>> = Self::load_global_config();
 
-        let project_path_str: String = String::from(project_path.to_str().unwrap());
         return match Config::load(config_path.to_str().unwrap()) {
             Ok(project_config) => Ok(Self {
-                path: project_path_str,
                 config: project_config,
                 config_path: String::from(config_path.to_str().unwrap()),
                 global_config,
@@ -145,7 +141,14 @@ impl ProjectManager {
     }
 
     pub fn compile_notes(&self) {
-        todo!()
+        fs::create_dir_all("Notes").expect("Unable to create notes directory");
+        if let Ok(mut notes_file) = fs::File::create("Notes/Notes.md") {
+            for (_name, sample) in &self.config.samples {
+                writeln!(notes_file, "{}", sample).expect("Couldn't write sample to note file");
+            }
+        } else {
+            panic!("Couldn't create notes file")
+        }
     }
 
     pub fn save(&self) {
@@ -163,7 +166,7 @@ impl ProjectManager {
             let sample_src_path: &Path = Path::new(path);
 
             // Create the sample directory.
-            let sample_dst_path: String = sample.magic.clone();
+            let sample_dst_path: String = "Files/".to_owned() + &sample.magic;
             fs::create_dir_all(&sample_dst_path).expect("Unable to create sample directory.");
 
             // Copy the sample to its destination.

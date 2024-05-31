@@ -1,6 +1,7 @@
 /target
 /.malstrap
-
+/Notes
+/Files
 
 info.json
 relations.json
