@@ -1,12 +1,41 @@
 # MalStrap : The malware analysis bootstraping tool.
 
-## Features : 
-- Quickly setup a project folder from a sample or an hash
-- Fetch VT for known relations and domains
-- Keeps a relation-map of the sample
-- Allow the project to grow during analysis with new samples
+MalStrap is a command line tool designed to facilitate malware analysis, by handling project management and producing sample summaries.
+
+## Features :
+
+- Quickly setup a malware analysis project and add samples
 - Generate a summary of the current sample
-    - Chain of eventgs
-    - Related domains
-    - Related samples
-    - etc ...
+- Integration with VirusTotal
+    - Analysis results
+    - Reputation
+    - Related Domains and IPs
+    - Dropped files
+
+## Usage/Examples
+
+#### Syntax
+```bash
+    mal_strap [command] [option]
+```
+
+#### Example
+````bash
+    EG: ./mal_strap sample -s Tux.png
+````
+
+#### Options
+|  Option   | Description                                               |
+| :-------- | :-------------------------------------------------------- |
+| `init`    | Project init                                              |
+| `project` | Project actions                                           |
+| `sample`  | Sample actions                                            |
+| `notes`   | Note generation actions                                   |
+| `config`  | Configure workspace settings                              |
+| `help`    | Print this message or the help of the given subcommand(s) |
+
+## How to build
+```bash
+    cargo build --release
+```
+The compiled binary will be put at "target/release".
